@@ -26,12 +26,12 @@
                 </button>
                 <div class="collapse navbar-collapse " id="navbarNav">
                     <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-                        <li class="nav-item">
+                        <!-- <li class="nav-item">
                             <a class="nav-link active" aria-current="page" href="{{ url_for('main.home') }}">Home</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="{{ url_for('main.about') }}">About</a>
-                        </li>
+                        </li> -->
                         {% if current_user.is_authenticated %}
                             <li class="nav-item">
                                 <a class="nav-link" href="{{ url_for('posts.new_post') }}">New Post</a>
@@ -74,9 +74,8 @@
                     <h3>Sidebar</h3>
                     <p class='text-muted'>For your convenience
                         <ul class="list-group">
-                            <li class="list-group-item list-group-item-light">Latest Posts</li>
-                            <li class="list-group-item list-group-item-light">Announcements</li>
-                            <li class="list-group-item list-group-item-light">Calendars</li>
+                            <a href="{{ url_for('main.home') }}"><li class="list-group-item list-group-item-light">Latest Posts</li></a>
+                            <a href="{{ url_for('main.about') }}"><li class="list-group-item list-group-item-light">About Blogify</li></a>
                         </ul>
                     </p>
                 </div>
