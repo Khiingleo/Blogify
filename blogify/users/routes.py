@@ -4,7 +4,10 @@ from blogify import db, bcrypt
 from blogify.models import User, Post
 from blogify.users.forms import (RegistrationForm, LoginForm, UpdateAccountForm,
                                  RequestResetForm, ResetPasswordForm)
-from blogify.users.utils import save_picture, send_reset_email
+from blogify.users.utils import save_picture, send_reset_email, send_registration_email
+"""
+    Authentication and users routes
+"""
 
 
 users = Blueprint('users', __name__)
@@ -12,6 +15,7 @@ users = Blueprint('users', __name__)
 
 @users.route('/register', methods={"GET", "POST"})
 def register():
+    """Registeration route"""
     if current_user.is_authenticated:
         return redirect(url_for('main.home'))
     form = RegistrationForm()
@@ -20,29 +24,49 @@ def register():
         user = User(username=form.username.data, email=form.email.data, password=hashed_pw)
         db.session.add(user)
         db.session.commit()
-        flash(f'Your account has been created! you can now log in', 'success')
+        send_registration_email(user)
+        flash(f'Your account has been created! please check your mail to confirm registration', 'success')
         return redirect(url_for('users.login'))
     return render_template('register.html', title='Register', form=form)
 
 
+@users.route("/confirm_registration/<token>", methods=["GET", "POST"])
+def confirm_registration(token):
+    user = User.verify_reset_token(token)
+    if user:
+        user.confirmed = True
+        db.session.commit()
+        flash('Registration confirmed successfully! You can now log in.', 'success')
+        return redirect(url_for('users.login'))
+    else:
+        flash('Invalid or expired token. Please try registering again.', 'danger')
+        return redirect(url_for('users.register'))
+
+
 @users.route('/login', methods=["GET", "POST"])
 def login():
+    """Login route"""
     if current_user.is_authenticated:
         return redirect(url_for('main.home'))
     form = LoginForm()
     if form.validate_on_submit():
         user = User.query.filter_by(email=form.email.data).first()
         if user and bcrypt.check_password_hash(user.password, form.password.data):
-            login_user(user, remember=form.remember.data)
-            next_page= request.args.get("next")
-            return redirect(next_page) if next_page else redirect(url_for('main.home'))
+            if user.confirmed:
+                login_user(user, remember=form.remember.data)
+                next_page= request.args.get("next")
+                return redirect(next_page) if next_page else redirect(url_for('main.home'))
+            else:
+                flash("Please confirm your registration before logging in.", 'warning')
         else:
             flash("Log in unsuccessful, please check email and password", 'danger')
     return render_template('login.html', title='Login', form=form)
 
+
 @users.route("/logout")
 @login_required
 def logout():
+    """Logout route"""
     logout_user()
     return redirect(url_for('main.home'))
 
@@ -50,6 +74,7 @@ def logout():
 @users.route("/account", methods=["GET", "POST"])
 @login_required
 def account():
+    """User account's route"""
     form = UpdateAccountForm()
     if form.validate_on_submit():
         if form.picture.data:
@@ -70,6 +95,7 @@ def account():
 
 @users.route("/user/<string:username>")
 def user_posts(username):
+    """User's posts route"""
     page = request.args.get('page', 1, type=int)
     user = User.query.filter_by(username=username).first_or_404()
     posts = Post.query.filter_by(author=user).order_by(Post.date_posted.desc()).paginate(page=page, per_page=5)
@@ -78,6 +104,7 @@ def user_posts(username):
 
 @users.route("/reset_password", methods=["GET", "POST"])
 def reset_request():
+    """Reset password request route"""
     if current_user.is_authenticated:
         return redirect(url_for('main.home'))
     form = RequestResetForm()
@@ -91,6 +118,7 @@ def reset_request():
 
 @users.route("/reset_password/<token>", methods=["GET", "POST"])
 def reset_token(token):
+    """Reset password token route"""
     if current_user.is_authenticated:
         return redirect(url_for('main.home'))
     user = User.verify_reset_token(token)

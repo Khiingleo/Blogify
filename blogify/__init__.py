@@ -4,6 +4,9 @@ from flask_bcrypt import Bcrypt
 from flask_login import LoginManager
 from flask_mail import Mail
 from blogify.config import Config
+"""
+    init file for the blogify app
+"""
 
 
 db = SQLAlchemy()
@@ -16,6 +19,9 @@ mail = Mail()
 
 
 def create_app(config_class=Config):
+    """
+    app instance with default configurations set up
+    """
     app = Flask(__name__)
     app.config.from_object(Config)
 

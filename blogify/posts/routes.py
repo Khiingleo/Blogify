@@ -4,6 +4,7 @@ from flask_login import current_user, login_required
 from blogify import db
 from blogify.models import Post, Like, Comment
 from blogify.posts.forms import PostForm, CommentForm
+"""Handles all forms of posts routes on the blogify app"""
 
 
 
@@ -13,6 +14,7 @@ posts = Blueprint('posts', __name__)
 @posts.route('/post/new', methods=["GET", "POST"])
 @login_required
 def new_post():
+    """Handles the creation of new posts"""
     form = PostForm()
     if form.validate_on_submit():
         post = Post(title=form.title.data, content=form.content.data, author=current_user)
@@ -26,6 +28,8 @@ def new_post():
 
 @posts.route('/post/<int:post_id>', methods=["GET", "POST"])
 def post(post_id):
+    """handles the viewing of a particular post based
+    on it's id"""
     form = CommentForm()
     post = Post.query.get_or_404(post_id)
     return render_template('post.html', title=post.title, post=post, form=form)
@@ -34,6 +38,8 @@ def post(post_id):
 @posts.route('/post/<int:post_id>/update', methods=["GET", "POST"])
 @login_required
 def update_post(post_id):
+    """Handles the updating of a post based on its id
+    requires the user to be the one who posted it"""
     post = Post.query.get_or_404(post_id)
     if post.author != current_user:
         abort(403)
@@ -54,6 +60,7 @@ def update_post(post_id):
 @posts.route("/post/<int:post_id>/delete", methods=["POST"])
 @login_required
 def delete(post_id):
+    """Deletes a post based on it's id"""
     post = Post.query.get_or_404(post_id)
     if post.author != current_user:
         abort(403)
@@ -66,6 +73,7 @@ def delete(post_id):
 @posts.route("/create-comment/<int:post_id>", methods=["GET", "POST"])
 @login_required
 def create_comment(post_id):
+    """Creates a comment based on a post id"""
     form = CommentForm()
     post = Post.query.get_or_404(post_id)
     if form.validate_on_submit():
@@ -77,6 +85,7 @@ def create_comment(post_id):
 @posts.route("/like-post/<int:post_id>", methods=["POST"])
 @login_required
 def like(post_id):
+    """Like a post"""
     post = Post.query.get_or_404(post_id)
     like = Like.query.filter_by(author=current_user, post_id=post_id).first()
     if like:

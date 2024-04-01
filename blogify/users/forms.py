@@ -30,7 +30,7 @@ class RegistrationForm(FlaskForm):
         
 
 class LoginForm(FlaskForm):
-    """registration form"""
+    """Login form"""
     email = StringField('Email',
                         validators=[DataRequired(), Email()])
     password = PasswordField('Password',
@@ -39,7 +39,7 @@ class LoginForm(FlaskForm):
     submit = SubmitField('Login')
 
 class UpdateAccountForm(FlaskForm):
-    """registration form"""
+    """update account form"""
     username = StringField('Username',
                            validators=[DataRequired(), Length(min=2, max=25)])
     email = StringField('Email',
@@ -61,6 +61,7 @@ class UpdateAccountForm(FlaskForm):
             
 
 class RequestResetForm(FlaskForm):
+    """Password reset request form"""
     email = StringField('Email',
                         validators=[DataRequired(), Email()])
     submit = SubmitField("Request Password Reset")
@@ -72,6 +73,7 @@ class RequestResetForm(FlaskForm):
 
 
 class ResetPasswordForm(FlaskForm):
+    """Reset password form"""
     password = PasswordField("Password",
                              validators=[DataRequired()])
     confirm_password = PasswordField("Confirm Password",
